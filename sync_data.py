@@ -11,6 +11,7 @@ import psycopg2
 from datetime import datetime, timezone
 import time
 from typing import Dict, List, Any
+from math import floor
 
 # Configure logging
 logging.basicConfig(
@@ -119,7 +120,8 @@ class DatabaseManager:
                 try:
                     # Map API fields to DB columns
                     site_id = 1
-                    updated_time = datetime.fromtimestamp(record.get('lastUpdateTime', time.time()), tz=timezone.utc)
+                    raw_timestamp = datetime.fromtimestamp(record.get('lastUpdateTime', time.time()), tz=timezone.utc)
+                    updated_time = floor_to_5_minutes(raw_timestamp)
                     production_power_w = record.get('generationPower')
                     consumption_power_w = record.get('usePower')
                     grid_power_w = record.get('gridPower')
@@ -169,6 +171,11 @@ class DatabaseManager:
         finally:
             if conn:
                 conn.close()
+
+def floor_to_5_minutes(dt):
+    """Floor a datetime object to the nearest 5-minute interval."""
+    minutes = dt.minute // 5 * 5
+    return dt.replace(minute=minutes, second=0, microsecond=0)
 
 def main():
     """Main sync process"""
