@@ -71,64 +71,97 @@ class DatabaseManager:
     
     def insert_time_series_data(self, data: List[Dict[str, Any]]) -> int:
         """
-        Insert time series data into database
-        Adjust this method based on your specific table structure
+        Insert solar data into the solar_data table.
         """
         if not data:
             logger.info("No data to insert")
             return 0
-        
+
         conn = None
         try:
             conn = self.get_connection()
             cursor = conn.cursor()
-            
-            # Example query - adjust based on your table structure
+
             insert_query = """
-                INSERT INTO time_series_data (
-                    timestamp, 
-                    value, 
-                    source,
-                    created_at
+                INSERT INTO solar_data (
+                    site_id,
+                    updated_time,
+                    production_power_w,
+                    consumption_power_w,
+                    grid_power_w,
+                    purchasing_power_w,
+                    feed_in_power_w,
+                    battery_power_w,
+                    charging_power_w,
+                    discharging_power_w,
+                    soc_percent,
+                    solar_status
                 ) VALUES (
-                    %s, %s, %s, %s
+                    %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s
                 )
-                ON CONFLICT (timestamp, source) 
-                DO UPDATE SET 
-                    value = EXCLUDED.value,
-                    updated_at = CURRENT_TIMESTAMP
+                ON CONFLICT (site_id, updated_time)
+                DO UPDATE SET
+                    production_power_w = EXCLUDED.production_power_w,
+                    consumption_power_w = EXCLUDED.consumption_power_w,
+                    grid_power_w = EXCLUDED.grid_power_w,
+                    purchasing_power_w = EXCLUDED.purchasing_power_w,
+                    feed_in_power_w = EXCLUDED.feed_in_power_w,
+                    battery_power_w = EXCLUDED.battery_power_w,
+                    charging_power_w = EXCLUDED.charging_power_w,
+                    discharging_power_w = EXCLUDED.discharging_power_w,
+                    soc_percent = EXCLUDED.soc_percent,
+                    solar_status = EXCLUDED.solar_status
             """
-            
+
             records_inserted = 0
-            current_time = datetime.now(timezone.utc)
-            
+
             for record in data:
                 try:
-                    # Adjust these field names based on your API response structure
-                    timestamp = record.get('timestamp') or record.get('time') or current_time
-                    value = record.get('value') or record.get('price') or record.get('data')
-                    source = record.get('source', 'api')
-                    
-                    # Convert timestamp if it's a string
-                    if isinstance(timestamp, str):
-                        timestamp = datetime.fromisoformat(timestamp.replace('Z', '+00:00'))
-                    
+                    # Map API fields to DB columns
+                    site_id = 1
+                    updated_time = datetime.fromtimestamp(record.get('lastUpdateTime', time.time()), tz=timezone.utc)
+                    production_power_w = record.get('generationPower')
+                    consumption_power_w = record.get('usePower')
+                    grid_power_w = record.get('gridPower')
+                    purchasing_power_w = record.get('purchasePower')
+                    feed_in_power_w = record.get('wirePower')
+                    battery_power_w = record.get('batteryPower')
+                    charging_power_w = record.get('chargePower')
+                    discharging_power_w = record.get('dischargePower')
+                    soc_percent = record.get('batterySoc')
+
+                    # Generate solar_status string
+                    solar_status = ",".join([
+                        "1" if (production_power_w or 0) > 0 else "0",
+                        "-1" if (battery_power_w or 0) < 0 else ("1" if (battery_power_w or 0) > 0 else "0"),
+                        "-1" if (consumption_power_w or 0) > 0 else "0",
+                        "1" if (grid_power_w or 0) > 0 else ("-1" if (grid_power_w or 0) < 0 else "0")
+                    ])
+
                     cursor.execute(insert_query, (
-                        timestamp,
-                        value,
-                        source,
-                        current_time
+                        site_id,
+                        updated_time,
+                        production_power_w,
+                        consumption_power_w,
+                        grid_power_w,
+                        purchasing_power_w,
+                        feed_in_power_w,
+                        battery_power_w,
+                        charging_power_w,
+                        discharging_power_w,
+                        soc_percent,
+                        solar_status
                     ))
                     records_inserted += 1
-                    
-                except (KeyError, ValueError, TypeError) as e:
+
+                except Exception as e:
                     logger.warning(f"Skipping invalid record: {record}, error: {e}")
                     continue
-            
+
             conn.commit()
             logger.info(f"Successfully inserted/updated {records_inserted} records")
             return records_inserted
-            
+
         except psycopg2.Error as e:
             if conn:
                 conn.rollback()
@@ -160,8 +193,7 @@ def main():
         db_manager = DatabaseManager(database_url)
         
         # Fetch data from API
-        # Adjust the endpoint path based on your API
-        api_data = api_client.fetch_data('')  # or '/data' or whatever your endpoint is
+        api_data = api_client.fetch_data('/station/v1.0/realTime')
         
         # Handle different API response formats
         if isinstance(api_data, dict):
