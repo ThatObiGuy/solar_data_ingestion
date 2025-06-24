@@ -34,7 +34,7 @@ I have a site_id and solar_status that many implementations won't require. Yours
  > python sync_data.py
 
 
-**Automation**  
+## Automation  
 This repository includes a GitHub Actions workflow that runs the sync every 3 minutes or can be triggered manually.
 
 
