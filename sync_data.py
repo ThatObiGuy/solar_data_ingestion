@@ -36,14 +36,14 @@ class APIClient:
             'Content-Type': 'application/json'
         })
     
-    def fetch_data(self, endpoint: str, max_retries: int = 3) -> Dict[str, Any]:
-        """Fetch data from API with retry logic"""
+    def fetch_data(self, endpoint: str, body: dict = None, max_retries: int = 3) -> Dict[str, Any]:
+        """Fetch data from API with retry logic (POST with JSON body)"""
         url = f"{self.base_url.rstrip('/')}/{endpoint.lstrip('/')}"
         
         for attempt in range(max_retries):
             try:
                 logger.info(f"Fetching data from {url} (attempt {attempt + 1})")
-                response = self.session.get(url, timeout=30)
+                response = self.session.post(url, json=body, timeout=30)
                 response.raise_for_status()
                 
                 data = response.json()
@@ -177,6 +177,7 @@ def main():
         database_url = os.getenv('DATABASE_URL')
         api_key = os.getenv('API_KEY')
         api_endpoint = os.getenv('API_ENDPOINT')
+        station_id = os.getenv('STATION_ID', '50133821')  # Default to 50133821 if not set
         
         if not all([database_url, api_key, api_endpoint]):
             missing = [var for var, val in [
@@ -192,8 +193,11 @@ def main():
         api_client = APIClient(api_key, api_endpoint)
         db_manager = DatabaseManager(database_url)
         
-        # Fetch data from API
-        api_data = api_client.fetch_data('/station/v1.0/realTime')
+        # Prepare POST body
+        post_body = {"stationId": int(station_id)}
+        
+        # Fetch data from API (POST)
+        api_data = api_client.fetch_data('/station/v1.0/realTime', body=post_body)
         
         # Handle different API response formats
         if isinstance(api_data, dict):
