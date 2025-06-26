@@ -7,13 +7,12 @@ The data is used as part of my larger smart energy management system project.
 
 - Fetches solar and energy data from the SolarmanPV API.
 - Inserts or updates time-series data in a PostgreSQL database.
-- Can be run manually or scheduled to run automatically (see GitHub Actions workflow).
+- Designed to run as a Render Cron Job every 5 minutes.
 
 ## Repository Structure
 
 - `sync_data.py`: Main Python script for data synchronization.
 - `requirements.txt`: Python dependencies.
-- `.github/workflows/data-sync.yml`: GitHub Actions workflow for scheduled/automated syncs.
 
 ## Usage
 
@@ -34,9 +33,9 @@ I have a site_id and solar_status that many implementations won't require. Yours
  > python sync_data.py
 
 
-## Automation  
-This repository includes a GitHub Actions workflow that runs the sync every 3 minutes or can be triggered manually.
+## Notes
 
+- Data is floored to 5-minute intervals to prevent duplicate entries
 
 This is part of a project for personal and research use as part of a smart energy management system.  
 See https://github.com/ThatObiGuy/smartEnergyManagementSystem for more information.
