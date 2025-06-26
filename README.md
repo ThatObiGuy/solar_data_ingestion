@@ -35,7 +35,7 @@ I have a site_id and solar_status that many implementations won't require. Yours
 
 ## Notes
 
-- Data is floored to 5-minute intervals to prevent duplicate entries
+- Data is floored to 5-minute intervals to prevent duplicate entries and to match the rest of the entrees in the db.
 
 This is part of a project for personal and research use as part of a smart energy management system.  
 See https://github.com/ThatObiGuy/smartEnergyManagementSystem for more information.
