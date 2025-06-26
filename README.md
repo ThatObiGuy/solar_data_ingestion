@@ -17,7 +17,7 @@ The data is used as part of my larger smart energy management system project.
 ## Usage
 
 1. **Clone the repo:**  
- > git clone https://github.com/your-username/dataSyncSEMS.git
+ > git clone https://github.com/ThatObiGuy/dataSyncSEMS.git
 
 2. **Set required environment variables:**  
 DATABASE_URL: PostgreSQL or other DB connection string.  
