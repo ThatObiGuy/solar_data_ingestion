@@ -1,13 +1,14 @@
 #!/usr/bin/env python3
 """
 Data sync script for fetching API data and updating Neon PostgreSQL database
+(Version using psycopg v3)
 """
 
 import os
 import sys
 import logging
 import requests
-import psycopg2
+import psycopg
 from datetime import datetime, timezone
 import time
 from typing import Dict, List, Any
@@ -66,8 +67,8 @@ class DatabaseManager:
     def get_connection(self):
         """Get database connection"""
         try:
-            return psycopg2.connect(self.database_url)
-        except psycopg2.Error as e:
+            return psycopg.connect(self.database_url)
+        except psycopg.Error as e:
             raise DataSyncError(f"Database connection failed: {e}")
     
     def insert_time_series_data(self, data: List[Dict[str, Any]]) -> int:
@@ -164,7 +165,7 @@ class DatabaseManager:
             logger.info(f"Successfully inserted/updated {records_inserted} records")
             return records_inserted
 
-        except psycopg2.Error as e:
+        except psycopg.Error as e:
             if conn:
                 conn.rollback()
             raise DataSyncError(f"Database operation failed: {e}")
