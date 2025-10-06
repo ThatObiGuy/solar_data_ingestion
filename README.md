@@ -6,7 +6,8 @@ The data is used as part of my larger smart energy management system project.
 ## Features
 
 - Fetches solar and energy data from the SolarmanPV API.
-- Inserts or updates time-series data in a PostgreSQL database.
+- Reformats the incoming data to match the rest of the db.
+- Inserts the time-series data the PostgreSQL database.
 - Designed to run as a Render Cron Job every 5 minutes.
 
 ## Repository Structure
@@ -26,10 +27,11 @@ API_ENDPOINT: SolarmanPV API base URL.
 STATION_ID: Station ID to query.  
 
 3. **Adjust fields as needed**  
-Your fields probably won't be the same as mine
-I have a site_id and solar_status that many implementations won't require. Yours may require more.
+Your fields won't be the same as mine
+I have a site_id and solar_status that suit for my implementation.
+Yours requires will differ.
 
-4. **Run the sync script:**  
+5. **Run the sync script:**  
  > python sync_data.py
 
 
